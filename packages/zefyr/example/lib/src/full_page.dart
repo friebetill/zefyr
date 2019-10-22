@@ -41,12 +41,13 @@ Delta getDelta() {
   return Delta.fromJson(json.decode(doc) as List);
 }
 
-class _FullPageEditorScreenState extends State<FullPageEditorScreen> {
+class _FullPageEditorScreenState extends State<FullPageEditorScreen> with TickerProviderStateMixin {
   final ZefyrController _controller =
       ZefyrController(NotusDocument.fromDelta(getDelta()));
   final FocusNode _focusNode = FocusNode();
   bool _editing = false;
   StreamSubscription<NotusChange> _sub;
+  TabController _tabController;
 
   @override
   void initState() {
@@ -54,6 +55,7 @@ class _FullPageEditorScreenState extends State<FullPageEditorScreen> {
     _sub = _controller.document.changes.listen((change) {
       print('${change.source}: ${change.change}');
     });
+    _tabController = TabController(initialIndex: 0, vsync: this, length: 2);
   }
 
   @override
@@ -88,14 +90,42 @@ class _FullPageEditorScreenState extends State<FullPageEditorScreen> {
       ),
       body: ZefyrScaffold(
         child: ZefyrTheme(
-          data: theme,
-          child: ZefyrEditor(
-            controller: _controller,
-            focusNode: _focusNode,
+            data: theme,
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                ZefyrEditor(
+                  controller: _controller,
+                  focusNode: _focusNode,
             mode: _editing ? ZefyrMode.edit : ZefyrMode.select,
-            imageDelegate: CustomImageDelegate(),
-          ),
-        ),
+                  imageDelegate: new CustomImageDelegate(),
+                ),
+                ZefyrEditor(
+                  controller: _controller,
+                  focusNode: _focusNode,
+            mode: _editing ? ZefyrMode.edit : ZefyrMode.select,
+                  imageDelegate: new CustomImageDelegate(),
+                ),
+                /*CardSideEditor(
+                key: const Key('front-editor'),
+                placeholder: S.of(context).frontText,
+                focusNode: _frontFocusNode,
+                controller: _frontController,
+                autofocus: _editorHasFocus,
+                showSmartTranslate: _frontTranslation != null && _frontController.document.toPlainText().trim().isEmpty,
+                onSmartTranslateTap: () => _handleSmartTranslateTap(isFrontTarget: true),
+              ),
+              CardSideEditor(
+                key: const Key('back-editor'),
+                placeholder: S.of(context).backText,
+                focusNode: _backFocusNode,
+                controller: _backController,
+                autofocus: _editorHasFocus,
+                showSmartTranslate: _backTranslation != null && _backController.document.toPlainText().trim().isEmpty,
+                onSmartTranslateTap: () => _handleSmartTranslateTap(isFrontTarget: false),
+              ),*/
+              ],
+            )),
       ),
     );
   }
